@@ -1,0 +1,20 @@
+{
+  "name": "city-explorer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IbrahimAljabr/city-explorer.git"
+  },
+  "author": "Ibrahim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IbrahimAljabr/city-explorer/issues"
+  },
+  "homepage": "https://github.com/IbrahimAljabr/city-explorer#readme"
+}
