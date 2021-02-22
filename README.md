@@ -36,9 +36,9 @@ Estimate of time needed to complete: 3 hours
 
 Start time: 3
 
-Finish time: 5:30
+Finish time: 11
 
-Actual time needed to complete: 2:30
+Actual time needed to complete: 6
 
 <!-- 01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
 
