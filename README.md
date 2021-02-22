@@ -1,7 +1,7 @@
 # city-explorer
 
 **Author**: Ibrahim al-jabr
-**Version**: 1.0.0 
+**Version**: 1.1.0 
 
 ## Overview
 
@@ -24,20 +24,21 @@ We need a faster way to find places and to daily uses .
 - node.js
 - express
 - cors
+- API
 
 
 ## Change Log
  <!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples: -->
 
-Number and name of feature:lab 6
+Number and name of feature:lab 7
 
-Estimate of time needed to complete: 2 hours
+Estimate of time needed to complete: 3 hours
 
 Start time: 3
 
-Finish time: 5:30
+Finish time: 11
 
-Actual time needed to complete: 2:30
+Actual time needed to complete: 6
 
 <!-- 01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
 
