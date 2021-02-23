@@ -91,16 +91,19 @@ function getWeatherData(searchQW,res) {
         try {
 
             let newArrWeather = [];
-    
-                let forecast = val.body.data[0].weather.description;
-                let time = val.body.data[0].datetime;
-               
-                const event = new Date(time);
-                const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-                let newTime = event.toLocaleDateString('en-US', options);
+          
+            val.body.data.map(ele=>{
                 
-                newArrWeather.push(new Cityweather(forecast, newTime));
-            
+                    let forecast = ele.weather.description;
+                    let time = ele.datetime;
+
+                    const event = new Date(time);
+                    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+                    let newTime = event.toLocaleDateString('en-US', options);
+                    
+                    newArrWeather.push(new Cityweather(forecast, newTime));
+            });
+    
             return newArrWeather;
     
         } catch (error) {
