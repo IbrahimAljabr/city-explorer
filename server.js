@@ -85,7 +85,7 @@ function getWeatherData(searchQW,res) {
         lon:longitude,
         lat:latitude
       };
-    let url ='https://api.weatherbit.io/v2.0/current';
+    let url ='https://api.weatherbit.io/v2.0/forecast/daily';
     return superagent.get(url).query(query).then(val=>{
             
         try {
@@ -93,7 +93,7 @@ function getWeatherData(searchQW,res) {
             let newArrWeather = [];
     
                 let forecast = val.body.data[0].weather.description;
-                let time = val.body.data[0].ob_time;
+                let time = val.body.data[0].datetime;
                
                 const event = new Date(time);
                 const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
