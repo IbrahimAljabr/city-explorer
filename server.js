@@ -54,8 +54,6 @@ function handleWeather(req, res) {
     res.status(200).send(data);
     });
 }
-
-
 function getPark(search,res) {
 
     const query = {
@@ -68,8 +66,8 @@ function getPark(search,res) {
     return superagent.get(url).query(query).then(val=>{
 
         let newArrPark = [];
-
-        val.body.data.map(ele=>{
+    try {
+          val.body.data.map(ele=>{
 
             let name=ele.fullName;
             let address=ele.addresses[0];
@@ -78,26 +76,8 @@ function getPark(search,res) {
             let url=ele.directionsUrl;
 
             newArrPark.push(new Parks(name,address,fee,description,url));
+
         });
-
-            
-        try {
-
-            
-          
-            // val.body.data.map(ele=>{
-                
-                    // let name = ele.weather.description;
-                    // let time = ele.datetime;
-
-                    // const event = new Date(time);
-                    // const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-                    // let newTime = event.toLocaleDateString('en-US', options);
-                    
-                    // // name,address,fee,description,url
-                    // newArrPark.push(new Parks(name,address,fee,description,url));
-            // });
-    
             return newArrPark;
     
         } catch (error) {
@@ -106,9 +86,7 @@ function getPark(search,res) {
     }).catch(error =>{
         res.status(500).send('No data from the server ... ' + error);
     });
-
 }
-
 
 function getData(searchQ,res) {
 
@@ -124,14 +102,11 @@ function getData(searchQ,res) {
 
         try {
 
-            
-            // let locationData = require('./data/location.json');
             let longitude = data.body[0].lon;
             let latitude = data.body[0].lat;
             let displayName = data.body[0].display_name;
             let responseObject = new Citylocation(searchQ, displayName, latitude, longitude);
-            
-           
+              
             return responseObject;
             
         } catch (error) {
@@ -139,9 +114,7 @@ function getData(searchQ,res) {
         }
     }).catch(error =>{
         res.status(500).send('No data from the server ... ' + error);
-    });
-
-   
+    });   
 
 }
 
@@ -179,9 +152,7 @@ function getWeatherData(searchQW,res) {
     }).catch(error =>{
         res.status(500).send('No data from the server ... ' + error);
     });
-
 }
-
 
 function Citylocation(searchQ, diplayName, lat, lon) {
 
