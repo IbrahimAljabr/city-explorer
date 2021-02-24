@@ -25,11 +25,13 @@ const PORT = process.env.PORT;
 
 app.get('/location', handleLocatioin);
 app.get('/weather', handleWeather);
-app.get('/parks',handlePark)
+app.get('/parks',handlePark);
+app.get('/movies',handleMovies);
 app.get('*',handleError)
 
 
 //=========Handlers=========\\
+
 
 function handleError(req,res) {
 
@@ -62,6 +64,10 @@ function handleWeather(req, res) {
     getWeatherData(searchQuery,res).then(data=>{
     res.status(200).send(data);
     });
+}
+
+function handleMovies(params) {
+    
 }
 
 
