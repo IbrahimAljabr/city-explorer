@@ -4,12 +4,12 @@
 
 let cName;
 
-// const { query } = require('express');
+const { query } = require('express');
 
 let express = require('express');
 const cors = require('cors');
 let superagent = require('superagent');
-// const { get } = require('superagent');
+const { get } = require('superagent');
 
 let app = express();
 app.use(cors());
