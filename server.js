@@ -1,31 +1,39 @@
 'use strict';
 
 
-
-let cName;
+//=========Imports=========\\
 
 const { query } = require('express');
 
 let express = require('express');
 const cors = require('cors');
 let superagent = require('superagent');
+const pg = require('pg');
+
 const { get } = require('superagent');
+
+//=========Config=========\\
 
 let app = express();
 app.use(cors());
 require('dotenv').config();
+const client = new pg.Client(process.env.DATABASE_URL);
 
 const PORT = process.env.PORT;
+
+//=========Routes=========\\
 
 app.get('/location', handleLocatioin);
 app.get('/weather', handleWeather);
 app.get('/parks',handlePark)
 app.get('*',handleError)
 
+
+//=========Handlers=========\\
+
 function handleError(req,res) {
 
     res.status(404).send(`Page Not Found`);
-
 }
 
 function handleLocatioin(req, res) {
@@ -37,6 +45,7 @@ function handleLocatioin(req, res) {
     });
     
 }
+
 function handlePark(req,res) {
 
     let search = req.query.search_query;
@@ -54,6 +63,11 @@ function handleWeather(req, res) {
     res.status(200).send(data);
     });
 }
+
+
+//=========Get Data=========\\
+
+//----park----\\
 function getPark(search,res) {
 
     const query = {
@@ -81,43 +95,76 @@ function getPark(search,res) {
             return newArrPark;
     
         } catch (error) {
-            res.status(500).send('Sorry, something want wrong ...' + error);
+            res.status(500).send('Sorry, something want wrong in the parks  ==> ' + error);
         }
     }).catch(error =>{
-        res.status(500).send('No data from the server ... ' + error);
+        res.status(500).send('No data from the server  ==> ' + error);
     });
 }
 
+//----location----\\
 function getData(searchQ,res) {
 
-    const query = {
-        key: process.env.GEOCODE_API_KEY,
-        q: searchQ,
-        limit: 1,
-        format: 'json'
-      };
+    let chech='select * from city where city_name=$1';
+    let safeVal=[searchQ];
+    
+    return client.query(chech,safeVal).then((data)=>{
+        
 
-    let url=`https://us1.locationiq.com/v1/search.php`
-    return superagent.get(url).query(query).then(data=>{
-
-        try {
-
-            let longitude = data.body[0].lon;
-            let latitude = data.body[0].lat;
-            let displayName = data.body[0].display_name;
-            let responseObject = new Citylocation(searchQ, displayName, latitude, longitude);
-              
-            return responseObject;
+        if (data.rowCount !==0) {
             
-        } catch (error) {
-            res.status(500).send('Sorry, something want wrong ...' + error);
+            let localdb=data.rows[0];
+            let localObj=new Citylocation(searchQ,localdb.city_name,localdb.lat,localdb.lon);
+            
+            console.log('data from database  ==> ',localObj);
+            return localObj;
         }
-    }).catch(error =>{
-        res.status(500).send('No data from the server ... ' + error);
-    });   
+
+        else{
+            console.log('data from API  ==> ',data.rows);
+            const query = {
+                key: process.env.GEOCODE_API_KEY,
+                q: searchQ,
+                limit: 1,
+                format: 'json'
+            };
+        
+            let url=`https://us1.locationiq.com/v1/search.php`
+            return superagent.get(url).query(query).then(data=>{
+        
+                try {
+                        
+                    let longitude = data.body[0].lon;
+                    let latitude = data.body[0].lat;
+                    let displayName = data.body[0].display_name;
+                    let responseObject = new Citylocation(searchQ, displayName, latitude, longitude);
+                    
+                    let dbQ=`INSERT INTO city(city_name,lon,lat) VALUES($1,$2,$3) RETURNING *`
+                    let safevalues=[searchQ,longitude,latitude];
+        
+                    client.query(dbQ,safevalues).then((data)=>{
+                        console.log('data from database ==> ',data.rowCount);
+                    }).catch(error =>{
+                        console.log(' client query error ==> '+ error);
+                    })
+                    return responseObject;
+                    
+                } catch (error) {
+                    res.status(500).send('Sorry, something want wrong in the location  ==> ' + error);
+                }
+            }).catch(error =>{
+                res.status(500).send('No data from the server  ==> ' + error);
+            }); 
+        }    
+    }).catch(error=>{
+        console.log('No select stat  ==> '+error);
+    });
+
+      
 
 }
 
+//----weather----\\
 function getWeatherData(searchQW,res) {
 
     const query = {
@@ -147,13 +194,17 @@ function getWeatherData(searchQW,res) {
             return newArrWeather;
     
         } catch (error) {
-            res.status(500).send('Sorry, something want wrong ...' + error);
+            res.status(500).send('Sorry, something want wrong in the weather  ==> ' + error);
         }
     }).catch(error =>{
-        res.status(500).send('No data from the server ... ' + error);
+        res.status(500).send('No data from the server  ==> ' + error);
     });
 }
 
+
+//=========Constructors=========\\
+
+//----location----\\
 function Citylocation(searchQ, diplayName, lat, lon) {
 
     this.search_query = searchQ;
@@ -162,11 +213,13 @@ function Citylocation(searchQ, diplayName, lat, lon) {
     this.longitude = lon;
 }
 
+//----weather----\\
 function Cityweather(weather, time) {
     this.forecast = weather;
     this.time = time;
 }
 
+//----park----\\
 function Parks(name,address,fee,description,url) {
     
     this.name=name;
@@ -176,8 +229,15 @@ function Parks(name,address,fee,description,url) {
     this.url=url;
 }
 
-app.listen(PORT, () => {
-    console.log('the app is here at', PORT);
-});
 
+
+client.connect().then(()=>{
+
+    app.listen(PORT, () => {
+        console.log('the app is here at ==> ', PORT);
+    });
+
+}).catch(error=>{
+    console.log('client connect error is ==> '+ error);
+});
 
