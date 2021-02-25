@@ -1,7 +1,7 @@
 'use strict';
 
 
-//=========Imports=========\\
+//========= Imports =========\\
 
 const { query } = require('express');
 
@@ -12,26 +12,27 @@ const pg = require('pg');
 
 const { get } = require('superagent');
 
-//=========Config=========\\
+//========= Config =========\\
 
 let app = express();
 app.use(cors());
 require('dotenv').config();
-// const client = new pg.Client(process.env.DATABASE_URL);
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
+const client = new pg.Client(process.env.DATABASE_URL);
+// const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
 
 const PORT = process.env.PORT;
 
-//=========Routes=========\\
+//========= Routes =========\\
 
 app.get('/location', handleLocatioin);
 app.get('/weather', handleWeather);
 app.get('/parks',handlePark);
 app.get('/movies',handleMovies);
+app.get('/yelp',handleYelp);
 app.get('*',handleError)
 
 
-//=========Handlers=========\\
+//========= Handlers =========\\
 
 
 function handleError(req,res) {
@@ -70,14 +71,66 @@ function handleWeather(req, res) {
 function handleMovies(req, res) {
     
     let searchQ = req.query.search_query;
-    getmovies(searchQ,res).then(data=>{
+    getMovies(searchQ,res).then(data=>{
         res.status(200).send(data);
     });
     
 }
 
+function handleYelp(req, res) {
+    
+    let searchQ = req.query;
+    getYelp(searchQ,res).then(data=>{
+        res.status(200).send(data);
+    });
 
-//=========Get Data=========\\
+    
+    
+}
+
+
+//========= Get Data =========\\
+
+//----yelp----\\
+function getYelp(searchQ,res) {
+
+    let yelp_key=process.env.YELP_API_KEY;
+    const query = {
+
+        location:searchQ.search_query,
+        term:'restaurants',
+        limit:5*searchQ.page
+        
+      };
+      console.log('=====================',query.page),'===================';
+    let url ='https://api.yelp.com/v3/businesses/search';
+    
+    return superagent.get(url).query(query).set('Authorization', `Bearer ${yelp_key}`).then(val=>{
+
+        let newArrPark = [];
+    try {
+
+            val.body.businesses.map(element=>{
+
+                
+                let name=element.name;
+                let image_url=element.image_url;
+                let rating=element.rating;
+                let price=element.price;
+                let url=element.url;
+            
+                newArrPark.push(new Yelp(name,image_url,price,rating,url));
+        });
+        // console.log('++++++++++++++++++++++',newArrPark,'========',element.name,'+++++++++++++++++++++');
+            return newArrPark;
+    
+        } catch (error) {
+            res.status(500).send('Sorry, something want wrong in the movies  ==> ' + error);
+        }
+    }).catch(error =>{
+        res.status(500).send('No data from the server movies  ==> ' + error);
+    });
+}
 
 //----park----\\
 function getPark(search,res) {
@@ -115,7 +168,7 @@ function getPark(search,res) {
 }
 
 //----movies----\\
-function getmovies(searchQ,res) {
+function getMovies(searchQ,res) {
 
     const query = {
         api_key: process.env.MOVIE_API_KEY,
@@ -123,7 +176,6 @@ function getmovies(searchQ,res) {
         page:1
       };
 
-      
     let url ='https://api.themoviedb.org/3/search/movie';
     
     return superagent.get(url).query(query).then(val=>{
@@ -131,8 +183,6 @@ function getmovies(searchQ,res) {
         let newArrPark = [];
     try {
 
-        
-        
             val.body.results.map(ele=>{
 
                 let title=ele.title;
@@ -142,8 +192,6 @@ function getmovies(searchQ,res) {
                 let vote_count=ele.vote_count;
                 let vote_average=ele.vote_average;
                 let poster_path=ele.poster_path;
-
-                console.log('=====================',title,poster_path,vote_average,'=========================');
 
                 newArrPark.push(new Movies(title,overview,vote_average,vote_count,poster_path,popularity,release_date));
 
@@ -166,18 +214,15 @@ function getData(searchQ,res) {
     
     return client.query(chech,safeVal).then((data)=>{
         
-
         if (data.rowCount !==0) {
             
             let localdb=data.rows[0];
             let localObj=new Citylocation(searchQ,localdb.city_name,localdb.lat,localdb.lon);
             
-            console.log('data from database  ==> ',localObj);
             return localObj;
         }
 
         else{
-            console.log('data from API  ==> ',data.rows);
             const query = {
                 key: process.env.GEOCODE_API_KEY,
                 q: searchQ,
@@ -215,8 +260,6 @@ function getData(searchQ,res) {
     }).catch(error=>{
         console.log('No select stat  ==> '+error);
     });
-
-      
 
 }
 
@@ -258,7 +301,7 @@ function getWeatherData(searchQW,res) {
 }
 
 
-//=========Constructors=========\\
+//========= Constructors =========\\
 
 //----location----\\
 function Citylocation(searchQ, diplayName, lat, lon) {
@@ -296,6 +339,17 @@ function Movies(title,overview,vote_average,vote_count,poster_path,popularity,re
     this.vote_average=vote_average;
     this.poster_path=poster_path;
 }
+
+//----Yelp----\\
+function Yelp(name,image_url,price,rating,url) {
+
+                this.name=name;
+                this.image_url=image_url;
+                this.rating=rating;
+                this.price=price;
+                this.url=url;
+}
+
 
 
 client.connect().then(()=>{
