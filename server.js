@@ -17,8 +17,8 @@ const { get } = require('superagent');
 let app = express();
 app.use(cors());
 require('dotenv').config();
-const client = new pg.Client(process.env.DATABASE_URL);
-// const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
+// const client = new pg.Client(process.env.DATABASE_URL);
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
 
 const PORT = process.env.PORT;
 
@@ -125,11 +125,9 @@ function getmovies(searchQ,res) {
 
       
     let url ='https://api.themoviedb.org/3/search/movie';
-    // 'https://api.themoviedb.org/3/search/movie?api_key=2bccc446c35d0f6f2931ad91e447e241&query=seattle'
     
     return superagent.get(url).query(query).then(val=>{
 
-        let ex=[val.body]
         let newArrPark = [];
     try {
 
