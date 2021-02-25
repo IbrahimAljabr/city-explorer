@@ -17,7 +17,8 @@ const { get } = require('superagent');
 let app = express();
 app.use(cors());
 require('dotenv').config();
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
+const client = new pg.Client(process.env.DATABASE_URL);
+// const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
 
 const PORT = process.env.PORT;
 
@@ -66,7 +67,12 @@ function handleWeather(req, res) {
     });
 }
 
-function handleMovies(params) {
+function handleMovies(req, res) {
+    
+    let searchQ = req.query.search_query;
+    getmovies(searchQ,res).then(data=>{
+        res.status(200).send(data);
+    });
     
 }
 
@@ -104,7 +110,53 @@ function getPark(search,res) {
             res.status(500).send('Sorry, something want wrong in the parks  ==> ' + error);
         }
     }).catch(error =>{
-        res.status(500).send('No data from the server  ==> ' + error);
+        res.status(500).send('No data from the server parks  ==> ' + error);
+    });
+}
+
+//----movies----\\
+function getmovies(searchQ,res) {
+
+    const query = {
+        api_key: process.env.MOVIE_API_KEY,
+        query:searchQ,
+        page:1
+      };
+
+      
+    let url ='https://api.themoviedb.org/3/search/movie';
+    // 'https://api.themoviedb.org/3/search/movie?api_key=2bccc446c35d0f6f2931ad91e447e241&query=seattle'
+    
+    return superagent.get(url).query(query).then(val=>{
+
+        let ex=[val.body]
+        let newArrPark = [];
+    try {
+
+        
+        
+            val.body.results.map(ele=>{
+
+                let title=ele.title;
+                let release_date=ele.release_date;
+                let popularity=ele.popularity;
+                let overview=ele.overview;
+                let vote_count=ele.vote_count;
+                let vote_average=ele.vote_average;
+                let poster_path=ele.poster_path;
+
+                console.log('=====================',title,poster_path,vote_average,'=========================');
+
+                newArrPark.push(new Movies(title,overview,vote_average,vote_count,poster_path,popularity,release_date));
+
+        });
+            return newArrPark;
+    
+        } catch (error) {
+            res.status(500).send('Sorry, something want wrong in the movies  ==> ' + error);
+        }
+    }).catch(error =>{
+        res.status(500).send('No data from the server movies  ==> ' + error);
     });
 }
 
@@ -159,7 +211,7 @@ function getData(searchQ,res) {
                     res.status(500).send('Sorry, something want wrong in the location  ==> ' + error);
                 }
             }).catch(error =>{
-                res.status(500).send('No data from the server  ==> ' + error);
+                res.status(500).send('No data from the server location  ==> ' + error);
             }); 
         }    
     }).catch(error=>{
@@ -203,7 +255,7 @@ function getWeatherData(searchQW,res) {
             res.status(500).send('Sorry, something want wrong in the weather  ==> ' + error);
         }
     }).catch(error =>{
-        res.status(500).send('No data from the server  ==> ' + error);
+        res.status(500).send('No data from the server weather  ==> ' + error);
     });
 }
 
@@ -235,6 +287,17 @@ function Parks(name,address,fee,description,url) {
     this.url=url;
 }
 
+//----movies----\\
+function Movies(title,overview,vote_average,vote_count,poster_path,popularity,release_date) {
+
+    this.title=title;
+    this.release_date=release_date;
+    this.popularity=popularity;
+    this.overview=overview;
+    this.vote_count=vote_count;
+    this.vote_average=vote_average;
+    this.poster_path=poster_path;
+}
 
 
 client.connect().then(()=>{
