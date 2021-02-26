@@ -33,15 +33,15 @@ We need a faster way to find places and to daily uses .
 ## Change Log
  <!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples: -->
 
-Number and name of feature:lab 8
+Number and name of feature:lab 9
 
 Estimate of time needed to complete: 3 hours
 
 Start time: 12
 
-Finish time: 
+Finish time: 3
 
-Actual time needed to complete: 
+Actual time needed to complete: 2 days
 
 <!-- 01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
 
