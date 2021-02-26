@@ -70,6 +70,7 @@ function handleWeather(req, res) {
 
 function handleMovies(req, res) {
     
+    nameArray =[];
     let searchQ = req.query.search_query;
     getMovies(searchQ,res).then(data=>{
         res.status(200).send(data);
@@ -83,17 +84,16 @@ function handleYelp(req, res) {
     getYelp(searchQ,res).then(data=>{
         res.status(200).send(data);
     });
-
-    
     
 }
 
 
 //========= Get Data =========\\
 
+let nameArray =[];
 //----yelp----\\
 function getYelp(searchQ,res) {
-
+    
     let yelp_key=process.env.YELP_API_KEY;
     const query = {
 
@@ -102,27 +102,33 @@ function getYelp(searchQ,res) {
         limit:5*searchQ.page
         
       };
-      console.log('=====================',query.page),'===================';
-    let url ='https://api.yelp.com/v3/businesses/search';
-    
-    return superagent.get(url).query(query).set('Authorization', `Bearer ${yelp_key}`).then(val=>{
 
-        let newArrPark = [];
-    try {
+    let url ='https://api.yelp.com/v3/businesses/search';
+
+    return superagent.get(url).query(query).set('Authorization', `Bearer ${yelp_key}`).then(val=>{
+        
+        let newArrYelp = [] ;
+
+    try { 
 
             val.body.businesses.map(element=>{
 
-                
+                if (nameArray.length === 0 || nameArray.includes(element.name)==false) {
+             
                 let name=element.name;
                 let image_url=element.image_url;
                 let rating=element.rating;
                 let price=element.price;
                 let url=element.url;
-            
-                newArrPark.push(new Yelp(name,image_url,price,rating,url));
+
+                newArrYelp.push(new Yelp(name,image_url,price,rating,url));  
+                nameArray.push(name);
+
+               } 
+               
         });
-        // console.log('++++++++++++++++++++++',newArrPark,'========',element.name,'+++++++++++++++++++++');
-            return newArrPark;
+        
+        return newArrYelp;
     
         } catch (error) {
             res.status(500).send('Sorry, something want wrong in the movies  ==> ' + error);
